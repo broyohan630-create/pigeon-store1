@@ -3,168 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Pigeon Hub</title>
-    <!-- We still use Tailwind for the layout structure -->
+    <title>PigeonHub Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons Library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* 1. Professional Dark Background */
-        body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #f8fafc;
-            min-height: 100vh;
-        }
-
-        /* 2. Glassmorphism Sticky Menu */
-        .glass-menu {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* 3. Card Hover & Lift Animation */
-        .pigeon-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .pigeon-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            border-color: rgba(56, 189, 248, 0.4); /* Glow effect on the border */
-        }
-
-        /* 4. Glowing Button Animation */
-        .buy-btn {
-            background: linear-gradient(90deg, #0ea5e9, #3b82f6);
-            transition: all 0.3s ease;
-        }
-        .buy-btn:hover {
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
-            transform: scale(1.05);
-        }
-        .buy-btn:active {
-            transform: scale(0.95); /* Button shrinks slightly when clicked */
-        }
-
-        /* 5. Smooth Fade-In on Page Load */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade {
-            animation: fadeIn 0.8s ease-out forwards;
-        }
+        body { background: #0f172a; color: white; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .pigeon-card:hover .overlay { opacity: 1; }
+        .animate-pop { animation: pop 0.3s ease-out; }
+        @keyframes pop { 0% { transform: scale(0.9); } 100% { transform: scale(1); } }
     </style>
 </head>
-<body class="font-sans antialiased">
+<body class="pb-20">
 
-    <!-- The Top Navigation Menu -->
-    <nav class="glass-menu fixed w-full top-0 z-50 transition-all duration-300">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <!-- Your Logo/Brand Name -->
-            <div class="text-2xl font-extrabold tracking-wider text-sky-400">PIGEON<span class="text-white">HUB</span></div>
-            
-            <!-- Menu Links (Hidden on small mobile screens, visible on tablets/laptops) -->
-            <div class="hidden md:flex space-x-8 text-sm font-semibold tracking-wide">
-                <a href="#" class="hover:text-sky-400 transition">All Birds</a>
-                <a href="#" class="hover:text-sky-400 transition">Fancy Breeds</a>
-                <a href="#" class="hover:text-sky-400 transition">Racing</a>
-                <a href="#" class="hover:text-sky-400 transition">Contact</a>
-            </div>
-            
-            <!-- Mobile Hamburger Icon -->
-            <div class="md:hidden text-2xl cursor-pointer hover:text-sky-400 transition">☰</div>
+    <!-- Navigation -->
+    <nav class="glass fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-black text-sky-400">PIGEON<span class="text-white">HUB</span></h1>
+        <div class="flex items-center gap-6">
+            <button onclick="showSection('cart')" class="relative">
+                <i class="fa-solid fa-cart-shopping text-xl"></i>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-[10px] px-1.5 rounded-full hidden">0</span>
+            </button>
+            <button onclick="toggleLogin()" class="text-sm font-bold bg-sky-600 px-4 py-1.5 rounded-lg">Login</button>
         </div>
     </nav>
 
-    <!-- Header Section -->
-    <header class="pt-32 pb-12 text-center animate-fade">
-        <h1 class="text-4xl md:text-5xl font-black mb-4">The Premium Collection</h1>
-        <p class="text-slate-400 text-lg">Exquisite birds, verified genetics.</p>
-    </header>
+    <!-- Main Content -->
+    <div id="main-view" class="pt-24 px-4 max-w-6xl mx-auto">
+        <header class="mb-8">
+            <h2 class="text-3xl font-bold">Latest Arrivals</h2>
+            <p class="text-slate-400">Premium breeds for collectors</p>
+        </header>
+        <div id="pigeon-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </div>
 
-    <!-- Storefront Grid -->
-    <div id="storefront" class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8 pb-20">
-        <!-- The cards will appear here automatically -->
+    <!-- Cart / Profile View (Hidden by default) -->
+    <div id="cart-view" class="hidden pt-24 px-4 max-w-2xl mx-auto animate-fade">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-bold">Your Profile & Cart</h2>
+            <button onclick="showSection('main')" class="text-sky-400 font-bold">← Back to Shop</button>
+        </div>
+        <div id="cart-items" class="space-y-4">
+            <p class="text-slate-500 text-center">Your cart is empty.</p>
+        </div>
+        <div id="cart-total" class="mt-8 p-6 glass rounded-2xl hidden text-right">
+            <p class="text-xl font-bold">Total: <span id="total-price">$0</span></p>
+            <button class="mt-4 bg-green-600 w-full py-3 rounded-xl font-bold">Checkout via WhatsApp</button>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-6">
+        <div class="glass w-full max-w-sm p-8 rounded-3xl animate-pop">
+            <h3 class="text-2xl font-bold mb-6 text-center">Member Login</h3>
+            <input type="text" placeholder="Username" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl mb-4">
+            <input type="password" placeholder="Password" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl mb-6">
+            <button onclick="toggleLogin()" class="w-full bg-sky-600 py-3 rounded-xl font-bold">Sign In</button>
+            <button onclick="toggleLogin()" class="w-full mt-2 text-slate-400 text-sm">Cancel</button>
+        </div>
     </div>
 
     <script>
-        // --- ADMIN AREA: Add your pigeons here ---
-        const myPigeons = [
-            {
-                name: "White Fantail",
-                price: "$45",
-                desc: "Pure white, high tail carriage, fully vaccinated.",
-                image: "https://via.placeholder.com/400x300/1e293b/ffffff?text=White+Fantail",
-                link: "https://wa.me/YOURNUMBER"
-            },
-            {
-                name: "Racing Homer",
-                price: "$75",
-                desc: "Strong wings, excellent for long distance flying.",
-                image: "https://via.placeholder.com/400x300/1e293b/ffffff?text=Racing+Homer",
-                link: "https://wa.me/YOURNUMBER"
-            },
-            {
-                name: "Red Modena",
-                price: "$55",
-                desc: "Deep red color, calm temperament, great posture.",
-                image: "https://via.placeholder.com/400x300/1e293b/ffffff?text=Red+Modena",
-                link: "https://wa.me/YOURNUMBER"
-            }
+        const birds = [
+            { id: 1, name: "White Fantail", price: 45, image: "https://via.placeholder.com/400x300/1e293b/ffffff?text=White+Fantail" },
+            { id: 2, name: "Racing Homer", price: 75, image: "https://via.placeholder.com/400x300/1e293b/ffffff?text=Racing+Homer" },
+            { id: 3, name: "Red Modena", price: 55, image: "https://via.placeholder.com/400x300/1e293b/ffffff?text=Red+Modena" }
         ];
-        // -----------------------------------------
 
-        // JavaScript Function to generate a professional UI Click Sound
-        function playClickSound() {
-            // We use the browser's built-in audio engine so you don't need MP3 files
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return; 
-            
-            const ctx = new AudioContext();
-            const osc = ctx.createOscillator();
-            const gainNode = ctx.createGain();
+        let cart = [];
 
-            osc.type = 'sine'; // Smooth clean tone
-            osc.frequency.setValueAtTime(600, ctx.currentTime); 
-            osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.1);
-
-            gainNode.gain.setValueAtTime(0.1, ctx.currentTime); // Volume
-            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1); // Fade out fast
-
-            osc.connect(gainNode);
-            gainNode.connect(ctx.destination);
-
-            osc.start();
-            osc.stop(ctx.currentTime + 0.1);
+        function renderStore() {
+            const grid = document.getElementById('pigeon-grid');
+            birds.forEach(bird => {
+                grid.innerHTML += `
+                    <div class="glass rounded-3xl overflow-hidden relative group">
+                        <img src="${bird.image}" class="w-full h-60 object-cover">
+                        <!-- Like Button -->
+                        <button onclick="toggleLike(this)" class="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-full hover:text-red-500 transition">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                        <div class="p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold">${bird.name}</h3>
+                                <span class="text-sky-400 font-black">$${bird.price}</span>
+                            </div>
+                            <button onclick="addToCart(${bird.id})" class="w-full bg-white text-black py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-sky-400 transition">
+                                <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
-        // Load the Pigeons into the page with a staggering animation
-        const container = document.getElementById('storefront');
-        
-        myPigeons.forEach((bird, index) => {
-            // Each card loads 0.2 seconds after the previous one
-            const delay = index * 0.2; 
-            
-            container.innerHTML += `
-                <div class="pigeon-card rounded-2xl overflow-hidden animate-fade" style="animation-delay: ${delay}s; opacity: 0;">
-                    <img src="${bird.image}" class="w-full h-56 object-cover border-b border-slate-700">
-                    <div class="p-6">
-                        <h2 class="text-2xl font-bold text-white mb-1">${bird.name}</h2>
-                        <div class="text-sky-400 font-black text-xl mb-3">${bird.price}</div>
-                        <p class="text-slate-400 text-sm mb-6 h-10">${bird.desc}</p>
-                        
-                        <a href="${bird.link}" 
-                           target="_blank"
-                           onclick="playClickSound()" 
-                           class="buy-btn text-white w-full py-3 rounded-xl font-bold flex justify-center items-center gap-2">
-                           Buy on WhatsApp
-                        </a>
+        function addToCart(id) {
+            const bird = birds.find(b => b.id === id);
+            cart.push(bird);
+            updateCartUI();
+            playFeedback();
+        }
+
+        function updateCartUI() {
+            const count = document.getElementById('cart-count');
+            const list = document.getElementById('cart-items');
+            const total = document.getElementById('cart-total');
+            const totalText = document.getElementById('total-price');
+
+            count.innerText = cart.length;
+            count.classList.toggle('hidden', cart.length === 0);
+
+            if (cart.length > 0) {
+                list.innerHTML = cart.map((item, index) => `
+                    <div class="glass p-4 rounded-xl flex items-center justify-between animate-fade">
+                        <div class="flex items-center gap-4">
+                            <img src="${item.image}" class="w-12 h-12 rounded-lg object-cover">
+                            <div>
+                                <p class="font-bold">${item.name}</p>
+                                <p class="text-sky-400 text-sm">$${item.price}</p>
+                            </div>
+                        </div>
+                        <button onclick="removeFromCart(${index})" class="text-slate-500 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
                     </div>
-                </div>
-            `;
-        });
+                `).join('');
+                total.classList.remove('hidden');
+                totalText.innerText = `$${cart.reduce((sum, item) => sum + item.price, 0)}`;
+            } else {
+                list.innerHTML = `<p class="text-slate-500 text-center">Your cart is empty.</p>`;
+                total.classList.add('hidden');
+            }
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        function showSection(section) {
+            document.getElementById('main-view').classList.toggle('hidden', section === 'cart');
+            document.getElementById('cart-view').classList.toggle('hidden', section === 'main');
+        }
+
+        function toggleLogin() {
+            document.getElementById('login-modal').classList.toggle('hidden');
+        }
+
+        function toggleLike(btn) {
+            const icon = btn.querySelector('i');
+            icon.classList.toggle('fa-regular');
+            icon.classList.toggle('fa-solid');
+            icon.classList.toggle('text-red-500');
+        }
+
+        function playFeedback() {
+            // Mobile vibration feedback if supported
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+
+        renderStore();
     </script>
 </body>
- </html>
+    </html>
