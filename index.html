@@ -6,65 +6,52 @@
     <title>Premium Pigeon Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .pigeon-card:hover { transform: translateY(-5px); transition: 0.3s; }
+        .pigeon-card { transition: all 0.3s ease; }
+        .pigeon-card:hover { transform: translateY(-8px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .whatsapp-btn { background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-50">
 
-    <!-- Header -->
-    <header class="bg-blue-600 text-white p-6 text-center shadow-lg">
-        <h1 class="text-3xl font-bold">Pigeon Hub</h1>
-        <p class="mt-2 text-blue-100">Quality Birds | Instant WhatsApp Ordering</p>
+    <header class="bg-gray-900 text-white py-10 text-center">
+        <h1 class="text-4xl font-extrabold">Pigeon Hub</h1>
+        <p class="text-gray-400 mt-2">The Best Birds, Delivered to You</p>
     </header>
 
-    <!-- Product Grid -->
-    <div id="storefront" class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Birds will appear here automatically -->
-    </div>
+    <div id="storefront" class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8"></div>
 
     <script>
-        // --- EDIT ONLY THIS PART TO ADD BIRDS ---
+        // --- ADMIN AREA: ONLY EDIT THIS LIST ---
         const myPigeons = [
             {
                 name: "White Fantail",
                 price: "$45",
-                desc: "Pure white, high tail carriage, vaccinated.",
-                image: "https://via.placeholder.com/300x200?text=Pigeon+1",
-                link: "https://wa.me/YOURNUMBER?text=Hi,I+want+the+White+Fantail"
+                desc: "High quality breed, vaccinated.",
+                image: "https://via.placeholder.com/400x300",
+                link: "https://wa.me/YOURNUMBER"
             },
             {
                 name: "Racing Homer",
-                price: "$60",
-                desc: "Strong wings, excellent for long distance.",
-                image: "https://via.placeholder.com/300x200?text=Pigeon+2",
-                link: "https://wa.me/YOURNUMBER?text=Hi,I+want+the+Racing+Homer"
-            },
-            {
-                name: "test 1",
-                price: "$35",
-                desc: "Beautiful deep red color, very calm bird.",
-                image: "https://via.placeholder.com/300x200?text=Pigeon+3",
-                link: "https://wa.me/YOURNUMBER?text=Hi,I+want+the+Red+Modena"
+                price: "$75",
+                desc: "Fast and reliable performance bird.",
+                image: "https://via.placeholder.com/400x300",
+                link: "https://wa.me/YOURNUMBER"
             }
         ];
-        // ----------------------------------------
+        // --- END OF ADMIN AREA ---
 
         const container = document.getElementById('storefront');
-
         myPigeons.forEach(bird => {
             container.innerHTML += `
-                <div class="pigeon-card bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-                    <img src="${bird.image}" class="w-full h-48 object-cover">
-                    <div class="p-4 text-center">
-                        <h2 class="text-xl font-bold text-gray-800">${bird.name}</h2>
-                        <p class="text-blue-600 font-bold text-lg my-1">${bird.price}</p>
-                        <p class="text-gray-500 text-sm mb-4">${bird.desc}</p>
-                        <a href="${bird.link}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full font-bold inline-block transition">
-                            Buy via WhatsApp
-                        </a>
+                <div class="pigeon-card bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                    <img src="${bird.image}" class="w-full h-56 object-cover">
+                    <div class="p-6 text-center">
+                        <h2 class="text-2xl font-bold text-gray-800">${bird.name}</h2>
+                        <span class="inline-block bg-red-50 text-red-600 px-3 py-1 rounded-md font-bold my-2 border border-red-100">${bird.price}</span>
+                        <p class="text-gray-500 text-sm mb-6">${bird.desc}</p>
+                        <a href="${bird.link}" class="whatsapp-btn text-white w-full py-3 rounded-xl font-bold block transition shadow-lg">Buy on WhatsApp</a>
                     </div>
-                </div>
-            `;
+                </div>`;
         });
     </script>
 </body>
