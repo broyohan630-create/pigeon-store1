@@ -9,12 +9,37 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
+        <style>
+    /* ... your other styles ... */
+
+    /* 1. Instant Button Press Sync Effect */
+    .btn-premium-tap {
+        transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.08s ease, filter 0.08s ease;
+    }
+    
+    /* Triggers exactly when touched/clicked */
+    .btn-premium-tap:active {
+        transform: scale(0.93) translateY(2px) !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+        filter: brightness(0.85);
+    }
+
+    /* 2. Cart Success Flash Animation */
+    @keyframes successFlash {
+        0% { background-color: #ffffff; color: #000000; }
+        50% { background-color: #10b981; color: #ffffff; transform: scale(1.05); }
+        100% { background-color: #ffffff; color: #000000; }
+    }
+    .flash-success {
+        animation: successFlash 0.4s ease-out;
+    }
+</style>
         body { background: #0f172a; color: white; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
         .pigeon-card:hover .overlay { opacity: 1; }
         .animate-pop { animation: pop 0.3s ease-out; }
         @keyframes pop { 0% { transform: scale(0.9); } 100% { transform: scale(1); } }
-    </style>
+    
 </head>
 <body class="pb-20">
 
