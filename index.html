@@ -74,20 +74,20 @@
   </main>
 
   <script type="module">
-    // 1. Import Firebase tools specifically formatted for direct HTML use
+    // 1. Import Firebase tools formatted for direct browser use
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } 
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    // 2. Your unique Firebase Configuration
+    // 2. Your updated Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAd5Y5I2WyjN6JEWhSCKe8i1gl632CiOOA",
       authDomain: "pigeonmarket-89ae2.firebaseapp.com",
       projectId: "pigeonmarket-89ae2",
       storageBucket: "pigeonmarket-89ae2.firebasestorage.app",
       messagingSenderId: "562609333636",
-      appId: "1:562609333636:web:6ec2090024bca7240b69d1",
-      measurementId: "G-NFC1YGGDBG"
+      appId: "1:562609333636:web:e3dd44424abdd72e0b69d1",
+      measurementId: "G-E29GH7REHJ"
     };
 
     // 3. Initialize Firebase and Authentication
@@ -95,7 +95,7 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // 4. Grab HTML buttons to make them interactive
+    // 4. Grab HTML elements
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const userInfo = document.getElementById('user-info');
@@ -104,7 +104,7 @@
     loginBtn.addEventListener('click', () => {
       signInWithPopup(auth, provider).catch((error) => {
         console.error("Login failed:", error);
-        alert("Login failed. Make sure Google Auth is enabled in Firebase.");
+        alert("Login failed. Check if Google Auth is enabled in your Firebase console under Authentication > Sign-in method.");
       });
     });
 
@@ -113,15 +113,13 @@
       signOut(auth);
     });
 
-    // 7. Watch for User State Changes (Changes buttons when logged in/out)
+    // 7. Track Login State Changes
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User is logged in
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'block';
         userInfo.textContent = `Welcome, ${user.displayName}!`;
       } else {
-        // User is logged out
         loginBtn.style.display = 'block';
         logoutBtn.style.display = 'none';
         userInfo.textContent = '';
