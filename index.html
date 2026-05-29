@@ -1,149 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Pigeon Marketplace</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <style>
-        body { background: #0f172a; color: white; min-height: 100vh; }
-        .glass { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-        .post-card { transition: transform 0.3s ease; }
-        .post-card:hover { transform: translateY(-5px); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pigeon Market</title>
+  <style>
+    /* Clean, mobile-friendly styling */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+    header {
+      background-color: #2c3e50;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    .auth-btn {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .auth-btn:hover {
+      background-color: #2980b9;
+    }
+    main {
+      padding: 20px;
+      text-align: center;
+    }
+    #user-info {
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #27ae60;
+    }
+    .market-feed {
+      border: 2px dashed #bdc3c7;
+      padding: 40px 20px;
+      border-radius: 10px;
+      color: #7f8c8d;
+    }
+  </style>
 </head>
-<body class="pb-20 font-sans">
+<body>
 
-    <nav class="glass fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center">
-        <h1 class="text-xl font-black text-sky-400">PIGEON<span class="text-white">LIVE</span></h1>
-        <button onclick="toggleModal(true)" class="bg-sky-600 hover:bg-sky-500 font-bold px-4 py-2 rounded-xl text-sm transition">
-            <i class="fa-solid fa-plus mr-1"></i> Sell Pigeon
-        </button>
-    </nav>
+  <header>
+    <h1>Pigeon Market</h1>
+    <button id="login-btn" class="auth-btn">Sign in with Google</button>
+    <button id="logout-btn" class="auth-btn" style="display: none;">Log Out</button>
+  </header>
 
-    <div class="pt-28 px-4 max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-6">
-            <div>
-                <h2 class="text-2xl font-bold">Global Marketplace</h2>
-                <p class="text-xs text-slate-400">Real-time listings stored in the cloud</p>
-            </div>
-            <div id="loading-status" class="text-xs text-sky-400 font-mono animate-pulse">Connecting to Cloud...</div>
-        </div>
-        
-        <div id="listings-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            </div>
+  <main>
+    <div id="user-info"></div>
+    
+    <div class="market-feed">
+      <h2>Marketplace Feed</h2>
+      <p>Pigeon listings will appear here soon...</p>
     </div>
+  </main>
 
-    <div id="post-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="glass w-full max-w-md p-6 rounded-3xl max-h-[90vh] overflow-y-auto">
-            <h3 class="text-xl font-bold mb-4 text-sky-400">Create Live Listing</h3>
-            
-            <label class="text-xs text-slate-400 block mb-1">Pigeon Breed / Title</label>
-            <input id="pigeon-name" type="text" placeholder="e.g., Rare Red Modena" class="w-full bg-slate-800/80 border border-slate-700 p-3 rounded-xl mb-3 outline-none text-white text-sm">
-            
-            <label class="text-xs text-slate-400 block mb-1">Price ($)</label>
-            <input id="pigeon-price" type="number" placeholder="60" class="w-full bg-slate-800/80 border border-slate-700 p-3 rounded-xl mb-3 outline-none text-white text-sm">
-            
-            <label class="text-xs text-slate-400 block mb-1">Your WhatsApp Number (Include Country Code)</label>
-            <input id="pigeon-phone" type="text" placeholder="94771234567" class="w-full bg-slate-800/80 border border-slate-700 p-3 rounded-xl mb-3 outline-none text-white text-sm">
-            
-            <label class="text-xs text-slate-400 block mb-1">ImgBB Direct Image URL</label>
-            <input id="pigeon-image" type="text" placeholder="https://i.ibb.co/..." class="w-full bg-slate-800/80 border border-slate-700 p-3 rounded-xl mb-5 outline-none text-white text-sm">
-            
-            <button onclick="submitToCloud()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl font-bold transition text-sm shadow-lg shadow-emerald-900/20">Publish To Global Feed</button>
-            <button onclick="toggleModal(false)" class="w-full text-slate-400 text-xs py-2 mt-2 hover:text-white transition">Cancel</button>
-        </div>
-    </div>
+  <script type="module">
+    // 1. Import Firebase tools specifically formatted for direct HTML use
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } 
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    <script>
-        // 1. Live Temporary Test Database Config (No phone memory used)
-        const firebaseConfig = {
-            databaseURL: "https://pigeon-market-default-rtdb.firebaseio.com/"
-        };
-        
-        // Initialize Cloud Connection
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const listingsRef = database.ref('listings');
+    // 2. Your unique Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAd5Y5I2WyjN6JEWhSCKe8i1gl632CiOOA",
+      authDomain: "pigeonmarket-89ae2.firebaseapp.com",
+      projectId: "pigeonmarket-89ae2",
+      storageBucket: "pigeonmarket-89ae2.firebasestorage.app",
+      messagingSenderId: "562609333636",
+      appId: "1:562609333636:web:6ec2090024bca7240b69d1",
+      measurementId: "G-NFC1YGGDBG"
+    };
 
-        // 2. Listen to Cloud Server Changes Live
-        listingsRef.on('value', (snapshot) => {
-            document.getElementById('loading-status').innerText = "● System Live";
-            const grid = document.getElementById('listings-grid');
-            grid.innerHTML = ''; // Wipe old elements
-            
-            const data = snapshot.val();
-            if (!data) {
-                grid.innerHTML = `<p class="text-slate-500 text-center col-span-full py-12">No active listings in the cloud. Be the first to add one!</p>`;
-                return;
-            }
+    // 3. Initialize Firebase and Authentication
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-            // Convert cloud object map to array and reverse to show newest first
-            Object.keys(data).reverse().forEach(key => {
-                const item = data[key];
-                const msg = encodeURIComponent(`Hi, I am interested in your listing: "${item.name}" for $${item.price}. Is it available?`);
-                const waLink = `https://wa.me/${item.phone}?text=${msg}`;
+    // 4. Grab HTML buttons to make them interactive
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const userInfo = document.getElementById('user-info');
 
-                grid.innerHTML += `
-                    <div class="glass post-card rounded-2xl overflow-hidden p-3 flex flex-col justify-between border border-slate-800">
-                        <div>
-                            <img src="${item.image}" class="w-full h-52 object-cover rounded-xl mb-3 bg-slate-900">
-                            <div class="flex justify-between items-start mb-1">
-                                <h3 class="text-base font-bold tracking-tight text-white">${item.name}</h3>
-                                <span class="text-emerald-400 font-extrabold text-base">$${item.price}</span>
-                            </div>
-                            <p class="text-[11px] text-slate-400 mb-3"><i class="fa-solid fa-user text-[9px] text-sky-400"></i> Seller ID: +${item.phone}</p>
-                        </div>
-                        <a href="${waLink}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-xl font-bold text-center block text-xs transition">
-                            <i class="fa-brands fa-whatsapp mr-1 text-sm"></i> Chat on WhatsApp
-                        </a>
-                    </div>`;
-            });
-        });
+    // 5. Login Function
+    loginBtn.addEventListener('click', () => {
+      signInWithPopup(auth, provider).catch((error) => {
+        console.error("Login failed:", error);
+        alert("Login failed. Make sure Google Auth is enabled in Firebase.");
+      });
+    });
 
-        // 3. UI Controllers
-        function toggleModal(show) {
-            document.getElementById('post-modal').classList.toggle('hidden', !show);
-        }
+    // 6. Logout Function
+    logoutBtn.addEventListener('click', () => {
+      signOut(auth);
+    });
 
-        // 4. Send Post data to Cloud Database
-        function submitToCloud() {
-            const name = document.getElementById('pigeon-name').value.trim();
-            const price = document.getElementById('pigeon-price').value.trim();
-            const phone = document.getElementById('pigeon-phone').value.trim();
-            let image = document.getElementById('pigeon-image').value.trim();
+    // 7. Watch for User State Changes (Changes buttons when logged in/out)
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is logged in
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'block';
+        userInfo.textContent = `Welcome, ${user.displayName}!`;
+      } else {
+        // User is logged out
+        loginBtn.style.display = 'block';
+        logoutBtn.style.display = 'none';
+        userInfo.textContent = '';
+      }
+    });
+  </script>
 
-            if (!name || !price || !phone) {
-                alert("Please type a Name, Price, and your WhatsApp Phone number!");
-                return;
-            }
-
-            if (!image) {
-                image = "https://via.placeholder.com/400x300/1e293b/ffffff?text=No+Photo+Uploaded";
-            }
-
-            // This pushes directly to Google cloud instantly
-            listingsRef.push({
-                name: name,
-                price: price,
-                phone: phone,
-                image: image
-            }).then(() => {
-                toggleModal(false);
-                // Clear input boxes cleanly
-                document.getElementById('pigeon-name').value = '';
-                document.getElementById('pigeon-price').value = '';
-                document.getElementById('pigeon-phone').value = '';
-                document.getElementById('pigeon-image').value = '';
-            }).catch(err => {
-                alert("Cloud write error: " + err.message);
-            });
-        }
-    </script>
 </body>
-    </html>
+</html>
