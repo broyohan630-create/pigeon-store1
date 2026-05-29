@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Pigeon Market | Premium</title>
   
+  <!-- Font Awesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
@@ -231,8 +232,10 @@
 </head>
 <body>
 
+  <!-- Custom Alert System -->
   <div id="toast-container"></div>
 
+  <!-- Top Navigation -->
   <header>
     <h1 class="logo"><i class="fa-solid fa-dove"></i> Pigeon Market</h1>
     
@@ -247,8 +250,10 @@
     </div>
   </header>
 
+  <!-- Main Feed Area -->
   <main>
     <div id="feed-container">
+      <!-- Loading Skeleton (Shows while database is connecting) -->
       <div class="empty-state" id="loading-state">
         <i class="fa-solid fa-spinner fa-spin"></i>
         <h3>Loading market data...</h3>
@@ -256,10 +261,12 @@
     </div>
   </main>
 
+  <!-- Floating Action Button -->
   <button class="fab" id="open-post-modal">
     <i class="fa-solid fa-plus"></i>
   </button>
 
+  <!-- Post Creation Modal -->
   <div class="modal-overlay" id="post-modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -298,6 +305,9 @@
   </div>
 
 
+  <!-- =========================================
+       7. JAVASCRIPT & FIREBASE LOGIC
+       ========================================= -->
   <script type="module">
     // --- IMPORTS ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -555,4 +565,18 @@
           const pId = this.getAttribute('data-id');
           const postRef = doc(db, "pigeons", pId);
           
-   
+          try {
+            await updateDoc(postRef, {
+              likes: increment(1)
+            });
+            // Note: The UI updates automatically because of onSnapshot!
+          } catch (err) {
+            showToast("Failed to like post", "error");
+          }
+        });
+      });
+    });
+
+  </script>
+</body>
+</html>
