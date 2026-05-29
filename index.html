@@ -356,7 +356,7 @@
       setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
-      }, 3000);
+      }, 5000);
     }
 
     // --- TIME FORMATTER ---
@@ -396,7 +396,7 @@
       }
     });
 
-    // --- CLIENT-SIDE IMAGE COMPRESSION (No Storage Needed!) ---
+    // --- CLIENT-SIDE IMAGE COMPRESSION ---
     function compressImage(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -406,7 +406,7 @@
           img.src = event.target.result;
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 500; // Optimal mobile layout width
+            const MAX_WIDTH = 450; // Slightly smaller to ensure strict data limits
             let width = img.width;
             let height = img.height;
 
@@ -420,12 +420,12 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
             
-            // Converts image to a highly compressed data string (around 30KB)
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5); // 50% quality compression
             resolve(compressedBase64);
           };
+          img.onerror = () => reject(new Error("Failed to load image element into memory."));
         };
-        reader.onerror = (err) => reject(err);
+        reader.onerror = (err) => reject(new Error("Failed to read image file."));
       });
     }
 
@@ -435,7 +435,8 @@
         await signInWithPopup(auth, provider);
         showToast("Logged in successfully!");
       } catch (error) {
-        showToast("Login failed: " + error.message, "error");
+        alert("Login Error: " + error.message);
+        showToast("Login failed", "error");
       }
     });
 
@@ -472,8 +473,15 @@
 
       phone = phone.replace(/[^0-9]/g, ''); 
 
-      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading to Database...';
       submitBtn.disabled = true;
+
+      // Setting a failsafe timeout watcher
+      const timeoutId = setTimeout(() => {
+        alert("The database is taking too long to respond. Please make sure you have created your 'Cloud Firestore' database in the Firebase Console and set its rules to public.");
+        submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publish Listing';
+        submitBtn.disabled = false;
+      }, 12000);
 
       try {
         // Compress photo right on the phone instantly
@@ -492,14 +500,17 @@
           timestamp: Date.now()
         });
 
+        clearTimeout(timeoutId);
         showToast("Pigeon published successfully!");
         form.reset();
         imagePreview.style.display = 'none';
         modal.classList.remove('active');
         
       } catch (error) {
+        clearTimeout(timeoutId);
         console.error(error);
-        showToast("Upload failed. Try again.", "error");
+        alert("Database Error: " + error.message + "\n\nMake sure your Cloud Firestore rules are set to public.");
+        showToast("Upload failed.", "error");
       } finally {
         submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publish Listing';
         submitBtn.disabled = false;
@@ -507,71 +518,79 @@
     });
 
     // --- REAL-TIME FEED ---
-    const q = query(collection(db, "pigeons"), orderBy("timestamp", "desc"));
-    onSnapshot(q, (snapshot) => {
-      feedContainer.innerHTML = '';
-      if (snapshot.empty) {
-        feedContainer.innerHTML = `
-          <div class="empty-state">
-            <i class="fa-solid fa-box-open"></i>
-            <h2>Market is empty</h2>
-            <p>Be the first to post a pigeon!</p>
-          </div>
-        `;
-        return;
-      }
+    try {
+      const q = query(collection(db, "pigeons"), orderBy("timestamp", "desc"));
+      onSnapshot(q, (snapshot) => {
+        feedContainer.innerHTML = '';
+        if (snapshot.empty) {
+          feedContainer.innerHTML = `
+            <div class="empty-state">
+              <i class="fa-solid fa-box-open"></i>
+              <h2>Market is empty</h2>
+              <p>Be the first to post a pigeon!</p>
+            </div>
+          `;
+          return;
+        }
 
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        const postId = docSnap.id;
-        const waLink = `https://wa.me/${data.phone}?text=Hi ${data.sellerName}, I am interested in your ${data.breed} listed for ${data.price} on Pigeon Market.`;
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const postId = docSnap.id;
+          const waLink = `https://wa.me/${data.phone}?text=Hi ${data.sellerName}, I am interested in your ${data.breed} listed for ${data.price} on Pigeon Market.`;
 
-        const card = document.createElement('div');
-        card.className = 'post-card';
-        card.innerHTML = `
-          <div class="post-header">
-            <div class="seller-info">
-              <i class="fa-solid fa-circle-user" style="font-size: 1.5rem; color: var(--primary)"></i>
-              <div>
-                <div>${data.sellerName}</div>
-                <div class="post-time">${timeAgo(data.timestamp)}</div>
+          const card = document.createElement('div');
+          card.className = 'post-card';
+          card.innerHTML = `
+            <div class="post-header">
+              <div class="seller-info">
+                <i class="fa-solid fa-circle-user" style="font-size: 1.5rem; color: var(--primary)"></i>
+                <div>
+                  <div>${data.sellerName}</div>
+                  <div class="post-time">${timeAgo(data.timestamp)}</div>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div class="post-image-container">
-            <img src="${data.imageUrl}" class="post-image" alt="${data.breed}" loading="lazy">
-            <div class="price-tag">${data.price}</div>
-          </div>
-          
-          <div class="post-details">
-            <h3 class="post-title">${data.breed}</h3>
-            <div class="action-buttons">
-              <button class="action-btn like-btn" data-id="${postId}">
-                <i class="fa-regular fa-heart"></i> ${data.likes || 0}
-              </button>
-              <a href="${waLink}" target="_blank" class="action-btn wa-btn">
-                <i class="fa-brands fa-whatsapp"></i> Chat
-              </a>
+            
+            <div class="post-image-container">
+              <img src="${data.imageUrl}" class="post-image" alt="${data.breed}" loading="lazy">
+              <div class="price-tag">${data.price}</div>
             </div>
-          </div>
-        `;
-        feedContainer.appendChild(card);
-      });
-
-      document.querySelectorAll('.like-btn').forEach(btn => {
-        btn.addEventListener('click', async function() {
-          if (!auth.currentUser) return showToast("Login to like posts!", "error");
-          const pId = this.getAttribute('data-id');
-          const postRef = doc(db, "pigeons", pId);
-          try {
-            await updateDoc(postRef, { likes: increment(1) });
-          } catch (err) {
-            showToast("Failed to like post", "error");
-          }
+            
+            <div class="post-details">
+              <h3 class="post-title">${data.breed}</h3>
+              <div class="action-buttons">
+                <button class="action-btn like-btn" data-id="${postId}">
+                  <i class="fa-regular fa-heart"></i> ${data.likes || 0}
+                </button>
+                <a href="${waLink}" target="_blank" class="action-btn wa-btn">
+                  <i class="fa-brands fa-whatsapp"></i> Chat
+                </a>
+              </div>
+            </div>
+          `;
+          feedContainer.appendChild(card);
         });
+
+        document.querySelectorAll('.like-btn').forEach(btn => {
+          btn.addEventListener('click', async function() {
+            if (!auth.currentUser) return showToast("Login to like posts!", "error");
+            const pId = this.getAttribute('data-id');
+            const postRef = doc(db, "pigeons", pId);
+            try {
+              await updateDoc(postRef, { likes: increment(1) });
+            } catch (err) {
+              showToast("Failed to like post", "error");
+            }
+          });
+        });
+      }, (error) => {
+        console.error("Firestore feed error:", error);
+        // Don't flood with alerts, just show in feed container if it fails to load
+        feedContainer.innerHTML = `<div class='empty-state' style='color:var(--danger)'><i class='fa-solid fa-triangle-exclamation'></i><h3>Database Connection Error</h3><p>Make sure Cloud Firestore is created and rules are open.</p></div>`;
       });
-    });
+    } catch(e) {
+      console.error(e);
+    }
   </script>
 </body>
 </html>
