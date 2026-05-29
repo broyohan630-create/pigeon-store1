@@ -3,330 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PigeonHub Premium</title>
+    <title>Global Pigeon Marketplace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
-        /* 1. Global Dark Luxury Theme */
-        body { 
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
-            color: white; 
-            min-height: 100vh;
-        }
-        
-        /* 2. Glassmorphism Effects */
-        .glass { 
-            background: rgba(30, 41, 59, 0.7); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255, 255, 255, 0.08); 
-        }
-
-        /* 3. Smooth Card Lift Effect */
-        .pigeon-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .pigeon-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            border-color: rgba(56, 189, 248, 0.3);
-        }
-
-        /* 4. Premium Button Click Transitions */
-        .btn-premium-tap {
-            transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.08s ease, filter 0.08s ease;
-        }
-        .btn-premium-tap:active {
-            transform: scale(0.94) translateY(2px) !important;
-            filter: brightness(0.85);
-        }
-
-        /* 5. Cart Success Flash Animation */
-        @keyframes successFlash {
-            0% { background-color: #ffffff; color: #000000; }
-            50% { background-color: #10b981; color: #ffffff; transform: scale(1.03); }
-            100% { background-color: #ffffff; color: #000000; }
-        }
-        .flash-success {
-            animation: successFlash 0.4s ease-out;
-        }
-
-        /* 6. Smooth Fade In Animation */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
+        body { background: #0f172a; color: white; min-height: 100vh; }
+        .glass { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .post-card { transition: transform 0.3s ease; }
+        .post-card:hover { transform: translateY(-5px); }
     </style>
 </head>
-<body class="pb-20 antialiased font-sans">
+<body class="pb-20 font-sans">
 
     <nav class="glass fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center">
-        <div onclick="showSection('main')" class="text-2xl font-extrabold tracking-wider text-sky-400 cursor-pointer select-none">
-            PIGEON<span class="text-white">HUB</span>
-        </div>
-        
-        <div class="flex items-center gap-6">
-            <button onclick="showSection('cart')" class="btn-premium-tap relative p-2 text-slate-300 hover:text-white transition">
-                <i class="fa-solid fa-cart-shopping text-xl"></i>
-                <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
-            </button>
-            
-            <button onclick="toggleLogin()" class="btn-premium-tap text-sm font-bold bg-sky-600 hover:bg-sky-500 px-4 py-2 rounded-xl transition">
-                Login
-            </button>
-            
-            <button id="menu-btn" class="md:hidden text-2xl text-slate-300 focus:outline-none select-none">☰</button>
-        </div>
+        <h1 class="text-xl font-black text-sky-400">PIGEON<span class="text-white">LIVE</span></h1>
+        <button onclick="toggleModal(true)" class="bg-sky-600 hover:bg-sky-500 font-bold px-4 py-2 rounded-xl text-sm transition">
+            <i class="fa-solid fa-plus mr-1"></i> Sell Pigeon
+        </button>
     </nav>
 
-    <div id="mobile-menu" class="hidden fixed top-[68px] left-0 w-full glass z-40 animate-fade">
-        <div class="flex flex-col p-6 space-y-4 text-center font-bold text-lg">
-            <a href="#" onclick="showSection('main'); toggleMenu();" class="hover:text-sky-400 transition">All Birds</a>
-            <a href="#" onclick="showSection('main'); toggleMenu();" class="hover:text-sky-400 transition">Fancy Breeds</a>
-            <a href="#" onclick="showSection('cart'); toggleMenu();" class="hover:text-sky-400 transition">My Profile Cart</a>
+    <div class="pt-28 px-4 max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-2xl font-bold">Global Marketplace</h2>
+                <p class="text-xs text-slate-400">Real-time listings stored in the cloud</p>
+            </div>
+            <div id="loading-status" class="text-xs text-sky-400 font-mono animate-pulse">Connecting to Cloud...</div>
         </div>
-    </div>
-
-    <div id="main-view" class="pt-28 px-4 max-w-6xl mx-auto animate-fade">
-        <header class="mb-10 text-center md:text-left">
-            <h2 class="text-3xl md:text-4xl font-black tracking-tight">The Premium Collection</h2>
-            <p class="text-slate-400 mt-2">Hand-raised premium breeds for true avian collectors</p>
-        </header>
         
-        <div id="pigeon-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div id="listings-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
             </div>
     </div>
 
-    <div id="cart-view" class="hidden pt-28 px-4 max-w-2xl mx-auto animate-fade">
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="text-3xl font-black">Your Profile & Cart</h2>
-            <button onclick="showSection('main')" class="text-sky-400 font-bold hover:underline">← Back to Shop</button>
-        </div>
-        
-        <div id="cart-items" class="space-y-4">
-            <p class="text-slate-500 text-center py-10">Your cart is empty.</p>
-        </div>
-        
-        <div id="cart-total" class="mt-8 p-6 glass rounded-2xl hidden flex flex-col items-end">
-            <p class="text-xl font-medium text-slate-400">Estimated Subtotal:</p>
-            <p class="text-3xl font-black text-white mt-1" id="total-price">$0</p>
-            <button onclick="checkoutWhatsApp()" class="btn-premium-tap mt-6 bg-green-500 hover:bg-green-600 text-white w-full py-4 rounded-xl font-bold flex items-center justify-center gap-3 text-lg shadow-lg shadow-green-500/20 transition">
-                <i class="fa-brands fa-whatsapp text-2xl"></i> Complete Order on WhatsApp
-            </button>
-        </div>
-    </div>
-
-    <div id="login-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-6 backdrop-blur-sm">
-        <div class="glass w-full max-w-sm p-8 rounded-3xl animate-fade">
-            <h3 class="text-2xl font-black mb-2 text-center">Member Access</h3>
-            <p class="text-slate-400 text-sm text-center mb-6">Enter details to log in to your store dashboard</p>
+    <div id="post-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass w-full max-w-md p-6 rounded-3xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold mb-4 text-sky-400">Create Live Listing</h3>
             
-            <input type="text" placeholder="Username" class="w-full bg-slate-800/60 border border-slate-700/60 p-3.5 rounded-xl mb-4 focus:outline-none focus:border-sky-500 text-white transition">
-            <input type="password" placeholder="Password" class="w-full bg-slate-800/60 border border-slate-700/60 p-3.5 rounded-xl mb-6 focus:outline-none focus:border-sky-500 text-white transition">
+            <label class="text-xs text-slate-400 block mb-1">Pigeon Breed / Title</label>
+            <input id="pigeon-name" type="text" placeholder="e.g., Rare Red Modena" class="w-full bg-slate-800/80 border border-slate-700 p-3 rounded-xl mb-3 outline-none text-white text-sm">
             
-            <button onclick="toggleLogin(); playClickSound();" class="btn-premium-tap w-full bg-sky-600 hover:bg-sky-500 py-3.5 rounded-xl font-bold transition mb-3">Sign In</button>
-            <button onclick="toggleLogin()" class="w-full text-slate-500 hover:text-slate-400 text-sm font-medium transition">Cancel</button>
+            <label class="text-xs text-slate-400 block mb-1">Price ($)</label>
+            <input id="pigeon-price" type="number" placeholder="60" class="w-full bg-slate-800/80 border border-slate-700 p-3 rounded-xl mb-3 outline-none text-white text-sm">
+            
+            <label class="text-xs text-slate-400 block mb-1">Your WhatsApp Number (Include Country Code)</label>
+            <input id="pigeon-phone" type="text" placeholder="94771234567" class="w-full bg-slate-800/80 border border-slate-700 p-3 rounded-xl mb-3 outline-none text-white text-sm">
+            
+            <label class="text-xs text-slate-400 block mb-1">ImgBB Direct Image URL</label>
+            <input id="pigeon-image" type="text" placeholder="https://i.ibb.co/..." class="w-full bg-slate-800/80 border border-slate-700 p-3 rounded-xl mb-5 outline-none text-white text-sm">
+            
+            <button onclick="submitToCloud()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl font-bold transition text-sm shadow-lg shadow-emerald-900/20">Publish To Global Feed</button>
+            <button onclick="toggleModal(false)" class="w-full text-slate-400 text-xs py-2 mt-2 hover:text-white transition">Cancel</button>
         </div>
     </div>
 
     <script>
-        // --- ADMIN DASHBOARD DATA INVENTORY AREA ---
-        // Change telephone number code inside your final links below!
-        const birds = [
-            { 
-                id: 1, 
-                name: "White Fantail", 
-                price: 45, 
-                desc: "Pure white plumage, beautiful fan-tail posture, highly energetic breed.",
-                image: "https://i.ibb.co/C3Tk7npW/IMG-20260528-WA0009.jpg" 
-            },
-            { 
-                id: 2, 
-                name: "Racing Homer", 
-                price: 75, 
-                desc: "High endurance navigation lineage, vaccinated, athletic composition.",
-                image: "https://via.placeholder.com/400x300/1e293b/ffffff?text=Racing+Homer" 
-            },
-            { 
-                id: 3, 
-                name: "Red Modena", 
-                price: 55, 
-                desc: "Unique deep copper coloring, premium show posture, incredibly gentle demeanor.",
-                image: "https://via.placeholder.com/400x300/1e293b/ffffff?text=Red+Modena" 
-            }
-        ];
-        // --- END OF ADMIN STORAGE ---
-
-        let cart = [];
-
-        // 1. Audio Synthesis Generator Core (Luxury Shimmer Glass Chime Preset)
-        function playClickSound() {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return; 
-            const ctx = new AudioContext();
-            
-            [880, 1760].forEach(freq => {
-                const osc = ctx.createOscillator();
-                const gainNode = ctx.createGain();
-                
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, ctx.currentTime);
-                
-                gainNode.gain.setValueAtTime(0.04, ctx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-                
-                osc.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.15);
-            });
-        }
-
-        // 2. Generate Storefront Product Layout Elements Matrix
-        function renderStore() {
-            const grid = document.getElementById('pigeon-grid');
-            grid.innerHTML = ''; // Clear previous items if any
-            
-            birds.forEach((bird, index) => {
-                const staggerDelay = index * 0.15;
-                grid.innerHTML += `
-                    <div class="pigeon-card rounded-3xl overflow-hidden relative group animate-fade" style="animation-delay: ${staggerDelay}s; opacity: 0;">
-                        <div class="relative overflow-hidden">
-                            <img src="${bird.image}" class="w-full h-64 object-cover group-hover:scale-105 transition duration-500">
-                            <button onclick="toggleLike(this)" class="absolute top-4 right-4 bg-black/40 backdrop-blur-md text-white p-2.5 rounded-full hover:text-red-500 transition shadow-md">
-                                <i class="fa-regular fa-heart"></i>
-                            </button>
-                        </div>
-                        <div class="p-6">
-                            <div class="flex justify-between items-start gap-2 mb-2">
-                                <h3 class="text-xl font-bold tracking-tight text-white">${bird.name}</h3>
-                                <span class="text-sky-400 font-black text-xl">$${bird.price}</span>
-                            </div>
-                            <p class="text-slate-400 text-xs mb-6 leading-relaxed h-8 overflow-hidden">${bird.desc}</p>
-                            
-                            <button onclick="addToCart(${bird.id}, this)" class="btn-premium-tap w-full bg-white text-black py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-sky-400 hover:text-white transition shadow-sm">
-                                <i class="fa-solid fa-cart-plus"></i> Add to Cart
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // 3. Cart Processing Logic
-        function addToCart(id, buttonElement) {
-            const bird = birds.find(b => b.id === id);
-            cart.push(bird);
-            
-            updateCartUI();
-            playClickSound();
-            
-            // Execute haptic device engine pulse if supported natively
-            if (navigator.vibrate) navigator.vibrate(35);
-            
-            // Toggle flash animation on targeted block elements
-            if (buttonElement) {
-                buttonElement.classList.add('flash-success');
-                setTimeout(() => { buttonElement.classList.remove('flash-success'); }, 400);
-            }
-        }
-
-        function updateCartUI() {
-            const count = document.getElementById('cart-count');
-            const list = document.getElementById('cart-items');
-            const total = document.getElementById('cart-total');
-            const totalText = document.getElementById('total-price');
-
-            count.innerText = cart.length;
-            count.classList.toggle('hidden', cart.length === 0);
-
-            if (cart.length > 0) {
-                list.innerHTML = cart.map((item, index) => `
-                    <div class="glass p-4 rounded-2xl flex items-center justify-between animate-fade">
-                        <div class="flex items-center gap-4">
-                            <img src="${item.image}" class="w-14 h-14 rounded-xl object-cover border border-slate-700">
-                            <div>
-                                <p class="font-bold text-white">${item.name}</p>
-                                <p class="text-sky-400 text-sm font-semibold">$${item.price}</p>
-                            </div>
-                        </div>
-                        <button onclick="removeFromCart(${index})" class="text-slate-400 hover:text-red-500 p-2 transition">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                `).join('');
-                total.classList.remove('hidden');
-                totalText.innerText = `$${cart.reduce((sum, item) => sum + item.price, 0)}`;
-            } else {
-                list.innerHTML = `<p class="text-slate-500 text-center py-10">Your cart is empty.</p>`;
-                total.classList.add('hidden');
-            }
-        }
-
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCartUI();
-            playClickSound();
-        }
-
-        // 4. WhatsApp Checkout System Text Encoder
-        function checkoutWhatsApp() {
-            if(cart.length === 0) return;
-            
-            // Generate structured invoice text details automatically
-            let message = "Hi! I would like to order the following pigeons from your shop:%0A%0A";
-            cart.forEach((item, i) => {
-                message += `${i+1}. *${item.name}* - $${item.price}%0A`;
-            });
-            
-            const finalTotal = cart.reduce((sum, item) => sum + item.price, 0);
-            message += `%0A*Total Amount:* $${finalTotal}%0A%0APlease confirm availability!`;
-            
-            // Replace with your actual phone number containing country code (e.g., 94771234567)
-            const targetPhoneNumber = "YOUR_PHONE_NUMBER_HERE"; 
-            
-            window.open(`https://wa.me/${targetPhoneNumber}?text=${message}`, '_blank');
-        }
-
-        // 5. Section Switcher & Modal Handlers
-        function showSection(section) {
-            document.getElementById('main-view').classList.toggle('hidden', section === 'cart');
-            document.getElementById('cart-view').classList.toggle('hidden', section === 'main');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            playClickSound();
-        }
-
-        function toggleLogin() {
-            document.getElementById('login-modal').classList.toggle('hidden');
-            playClickSound();
-        }
-
-        function toggleLike(btn) {
-            const icon = btn.querySelector('i');
-            icon.classList.toggle('fa-regular');
-            icon.classList.toggle('fa-solid');
-            icon.classList.toggle('text-red-500');
-            playClickSound();
-        }
-
-        // 6. Navigation Hamburger Controller Menu logic
-        function toggleMenu() {
-            const menu = document.getElementById('mobile-menu');
-            const btn = document.getElementById('menu-btn');
-            menu.classList.toggle('hidden');
-            btn.innerHTML = menu.classList.contains('hidden') ? '☰' : '✕';
-            playClickSound();
-        }
+        // 1. Live Temporary Test Database Config (No phone memory used)
+        const firebaseConfig = {
+            databaseURL: "https://pigeon-market-default-rtdb.firebaseio.com/"
+        };
         
-        document.getElementById('menu-btn').addEventListener('click', toggleMenu);
+        // Initialize Cloud Connection
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const listingsRef = database.ref('listings');
 
-        // Run application setup
-        renderStore();
+        // 2. Listen to Cloud Server Changes Live
+        listingsRef.on('value', (snapshot) => {
+            document.getElementById('loading-status').innerText = "● System Live";
+            const grid = document.getElementById('listings-grid');
+            grid.innerHTML = ''; // Wipe old elements
+            
+            const data = snapshot.val();
+            if (!data) {
+                grid.innerHTML = `<p class="text-slate-500 text-center col-span-full py-12">No active listings in the cloud. Be the first to add one!</p>`;
+                return;
+            }
+
+            // Convert cloud object map to array and reverse to show newest first
+            Object.keys(data).reverse().forEach(key => {
+                const item = data[key];
+                const msg = encodeURIComponent(`Hi, I am interested in your listing: "${item.name}" for $${item.price}. Is it available?`);
+                const waLink = `https://wa.me/${item.phone}?text=${msg}`;
+
+                grid.innerHTML += `
+                    <div class="glass post-card rounded-2xl overflow-hidden p-3 flex flex-col justify-between border border-slate-800">
+                        <div>
+                            <img src="${item.image}" class="w-full h-52 object-cover rounded-xl mb-3 bg-slate-900">
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="text-base font-bold tracking-tight text-white">${item.name}</h3>
+                                <span class="text-emerald-400 font-extrabold text-base">$${item.price}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mb-3"><i class="fa-solid fa-user text-[9px] text-sky-400"></i> Seller ID: +${item.phone}</p>
+                        </div>
+                        <a href="${waLink}" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-xl font-bold text-center block text-xs transition">
+                            <i class="fa-brands fa-whatsapp mr-1 text-sm"></i> Chat on WhatsApp
+                        </a>
+                    </div>`;
+            });
+        });
+
+        // 3. UI Controllers
+        function toggleModal(show) {
+            document.getElementById('post-modal').classList.toggle('hidden', !show);
+        }
+
+        // 4. Send Post data to Cloud Database
+        function submitToCloud() {
+            const name = document.getElementById('pigeon-name').value.trim();
+            const price = document.getElementById('pigeon-price').value.trim();
+            const phone = document.getElementById('pigeon-phone').value.trim();
+            let image = document.getElementById('pigeon-image').value.trim();
+
+            if (!name || !price || !phone) {
+                alert("Please type a Name, Price, and your WhatsApp Phone number!");
+                return;
+            }
+
+            if (!image) {
+                image = "https://via.placeholder.com/400x300/1e293b/ffffff?text=No+Photo+Uploaded";
+            }
+
+            // This pushes directly to Google cloud instantly
+            listingsRef.push({
+                name: name,
+                price: price,
+                phone: phone,
+                image: image
+            }).then(() => {
+                toggleModal(false);
+                // Clear input boxes cleanly
+                document.getElementById('pigeon-name').value = '';
+                document.getElementById('pigeon-price').value = '';
+                document.getElementById('pigeon-phone').value = '';
+                document.getElementById('pigeon-image').value = '';
+            }).catch(err => {
+                alert("Cloud write error: " + err.message);
+            });
+        }
     </script>
 </body>
     </html>
