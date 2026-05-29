@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pigeon Market | Premium</title>
+  
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* =========================================
+       1. CSS VARIABLES & THEMING
+       ========================================= */
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --secondary: #10b981;
+      --bg-color: #f3f4f6;
+      --card-bg: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --danger: #ef4444;
+      --whatsapp: #25D366;
+    }
+
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding-bottom: 80px; /* Space for FAB */
+    }
+
+    /* =========================================
+       2. NAVIGATION BAR
+       ========================================= */
+    header {
+      background: var(--card-bg);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; margin: 0; }
+    
+    .auth-section { display: flex; align-items: center; gap: 10px; }
+    .user-profile { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9rem; }
+    .user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); display: none; }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:active { transform: scale(0.95); }
+
+    /* =========================================
+       3. MAIN FEED & CARDS
+       ========================================= */
+    main { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+    
+    .empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); }
+    .empty-state i { font-size: 3rem; margin-bottom: 15px; color: #cbd5e1; }
+
+    .post-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      margin-bottom: 25px;
+      animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .post-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .seller-info { display: flex; align-items: center; gap: 10px; font-weight: bold; }
+    .post-time { font-size: 0.8rem; color: var(--text-muted); font-weight: normal; }
+    
+    .post-image-container { width: 100%; aspect-ratio: 4/3; background: #e2e8f0; position: relative; }
+    .post-image { width: 100%; height: 100%; object-fit: cover; }
+    .price-tag {
+      position: absolute;
+      bottom: 15px;
+      right: 15px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      backdrop-filter: blur(4px);
+    }
+
+    .post-details { padding: 15px; }
+    .post-title { margin: 0 0 10px 0; font-size: 1.2rem; }
+    
+    .action-buttons { display: flex; gap: 10px; margin-top: 15px; }
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: 0.2s;
+    }
+    .like-btn { background: #f3f4f6; color: var(--text-main); }
+    .like-btn.liked { color: var(--danger); background: #fef2f2; }
+    .wa-btn { background: var(--whatsapp); color: white; text-decoration: none; }
+
+    /* =========================================
+       4. FLOATING ACTION BUTTON (FAB)
+       ========================================= */
+    .fab {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 60px;
+      height: 60px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+      cursor: pointer;
+      z-index: 90;
+      transition: transform 0.2s;
+      border: none;
+    }
+    .fab:active { transform: scale(0.9); }
+
+    /* =========================================
+       5. MODAL (POPUP FORM)
+       ========================================= */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: flex-end; /* Opens from bottom on mobile */
+      justify-content: center;
+      z-index: 200;
+      backdrop-filter: blur(3px);
+    }
+    .modal-overlay.active { display: flex; }
+    
+    .modal-content {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 600px;
+      border-radius: 20px 20px 0 0;
+      padding: 25px 20px;
+      animation: slideUp 0.3s ease-out;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-header h2 { margin: 0; }
+    .close-modal { background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
+
+    /* Form Styles */
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+    }
+    .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    
+    /* Image Upload Area */
+    .file-upload-area {
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      background: #f8fafc;
+      margin-bottom: 20px;
+    }
+    .file-upload-area i { font-size: 2rem; color: var(--primary); margin-bottom: 10px; }
+    .file-upload-area input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .image-preview { width: 100%; border-radius: 8px; display: none; margin-top: 10px; max-height: 200px; object-fit: contain; }
+
+    .submit-btn { width: 100%; padding: 14px; font-size: 1.1rem; }
+    .submit-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* =========================================
+       6. TOAST NOTIFICATIONS
+       ========================================= */
+    #toast-container {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 1000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px;
+    }
+    .toast {
+      background: #333; color: white; padding: 12px 20px; border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px;
+      animation: toastSlide 0.3s ease-out forwards;
+    }
+    .toast.success { background: var(--secondary); }
+    .toast.error { background: var(--danger); }
+    @keyframes toastSlide {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom Alert System -->
+  <div id="toast-container"></div>
+
+  <!-- Top Navigation -->
+  <header>
+    <h1 class="logo"><i class="fa-solid fa-dove"></i> Pigeon Market</h1>
+    
+    <div class="auth-section">
+      <button id="login-btn" class="btn btn-primary"><i class="fa-brands fa-google"></i> Login</button>
+      
+      <div id="user-profile-ui" class="user-profile" style="display: none;">
+        <img id="user-pic" class="user-avatar" src="" alt="Profile">
+        <span id="user-name-display"></span>
+        <button id="logout-btn" class="btn btn-outline" style="padding: 6px 10px;"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Feed Area -->
+  <main>
+    <div id="feed-container">
+      <!-- Loading Skeleton -->
+      <div class="empty-state" id="loading-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <h3>Loading market data...</h3>
+      </div>
+    </div>
+  </main>
+
+  <!-- Floating Action Button -->
+  <button class="fab" id="open-post-modal">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+
+  <!-- Post Creation Modal -->
+  <div class="modal-overlay" id="post-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Post a Pigeon</h2>
+        <button class="close-modal" id="close-post-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <form id="pigeon-form">
+        <div class="form-group">
+          <label>Breed / Title</label>
+          <input type="text" id="pigeon-breed" placeholder="e.g., High-flyer, Fantail" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Price</label>
+          <input type="text" id="pigeon-price" placeholder="e.g., Rs. 2500" required>
+        </div>
+        
+        <div class="form-group">
+          <label>WhatsApp Number</label>
+          <input type="tel" id="pigeon-phone" placeholder="e.g., 94771234567" required>
+        </div>
+
+        <div class="file-upload-area">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <p>Tap to select a photo</p>
+          <input type="file" id="pigeon-file" accept="image/*" required>
+          <img id="image-preview" class="image-preview" alt="Preview">
+        </div>
+
+        <button type="submit" class="btn btn-primary submit-btn" id="submit-btn">
+          <i class="fa-solid fa-paper-plane"></i> Publish Listing
+        </button>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- =========================================
+       7. JAVASCRIPT & FIREBASE LOGIC
+       ========================================= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // --- CONFIGURATION ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyAd5Y5I2WyjN6JEWhSCKe8i1gl632CiOOA",
+      authDomain: "pigeonmarket-89ae2.firebaseapp.com",
+      projectId: "pigeonmarket-89ae2",
+      storageBucket: "pigeonmarket-89ae2.firebasestorage.app",
+      messagingSenderId: "562609333636",
+      appId: "1:562609333636:web:e3dd44424abdd72e0b69d1",
+      measurementId: "G-E29GH7REHJ"
+    };
+
+    // --- INITIALIZATION ---
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // --- DOM ELEMENTS ---
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const userProfileUI = document.getElementById('user-profile-ui');
+    const userNameDisplay = document.getElementById('user-name-display');
+    const userPic = document.getElementById('user-pic');
+    
+    const modal = document.getElementById('post-modal');
+    const openModalBtn = document.getElementById('open-post-modal');
+    const closeModalBtn = document.getElementById('close-post-modal');
+    
+    const form = document.getElementById('pigeon-form');
+    const fileInput = document.getElementById('pigeon-file');
+    const imagePreview = document.getElementById('image-preview');
+    const submitBtn = document.getElementById('submit-btn');
+    const feedContainer = document.getElementById('feed-container');
+
+    // --- TOAST NOTIFICATIONS ---
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${message}`;
+      document.getElementById('toast-container').appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // --- TIME FORMATTER ---
+    function timeAgo(timestamp) {
+      const seconds = Math.floor((new Date() - timestamp) / 1000);
+      let interval = seconds / 31536000;
+      if (interval > 1) return Math.floor(interval) + " years ago";
+      interval = seconds / 2592000;
+      if (interval > 1) return Math.floor(interval) + " months ago";
+      interval = seconds / 86400;
+      if (interval > 1) return Math.floor(interval) + " days ago";
+      interval = seconds / 3600;
+      if (interval > 1) return Math.floor(interval) + " hours ago";
+      interval = seconds / 60;
+      if (interval > 1) return Math.floor(interval) + " mins ago";
+      return "Just now";
+    }
+
+    // --- MODAL CONFIG ---
+    openModalBtn.addEventListener('click', () => {
+      if (!auth.currentUser) return showToast("Please login to post a pigeon!", "error");
+      modal.classList.add('active');
+    });
+    closeModalBtn.addEventListener('click', () => modal.classList.remove('active'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+
+    // --- IMAGE PREVIEW ---
+    fileInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          imagePreview.src = e.target.result;
+          imagePreview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // --- CLIENT-SIDE IMAGE COMPRESSION (No Storage Needed!) ---
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 500; // Optimal mobile layout width
+            let width = img.width;
+            let height = img.height;
+
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Converts image to a highly compressed data string (around 30KB)
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+            resolve(compressedBase64);
+          };
+        };
+        reader.onerror = (err) => reject(err);
+      });
+    }
+
+    // --- AUTHENTICATION ---
+    loginBtn.addEventListener('click', async () => {
+      try {
+        await signInWithPopup(auth, provider);
+        showToast("Logged in successfully!");
+      } catch (error) {
+        showToast("Login failed: " + error.message, "error");
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      signOut(auth);
+      showToast("Logged out successfully");
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loginBtn.style.display = 'none';
+        userProfileUI.style.display = 'flex';
+        userNameDisplay.textContent = user.displayName.split(' ')[0];
+        if (user.photoURL) {
+          userPic.src = user.photoURL;
+          userPic.style.display = 'block';
+        }
+      } else {
+        loginBtn.style.display = 'block';
+        userProfileUI.style.display = 'none';
+      }
+    });
+
+    // --- UPLOAD LISTING ---
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const user = auth.currentUser;
+      if (!user) return showToast("You must be signed in!", "error");
+
+      const breed = document.getElementById('pigeon-breed').value;
+      const price = document.getElementById('pigeon-price').value;
+      let phone = document.getElementById('pigeon-phone').value;
+      const file = fileInput.files[0];
+
+      phone = phone.replace(/[^0-9]/g, ''); 
+
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+      submitBtn.disabled = true;
+
+      try {
+        // Compress photo right on the phone instantly
+        const finalImageUrl = await compressImage(file);
+
+        // Save directly to Firestore completely bypassing Firebase Storage
+        await addDoc(collection(db, "pigeons"), {
+          breed: breed,
+          price: price,
+          phone: phone,
+          imageUrl: finalImageUrl, 
+          sellerName: user.displayName,
+          sellerPic: user.photoURL || '',
+          sellerId: user.uid,
+          likes: 0,
+          timestamp: Date.now()
+        });
+
+        showToast("Pigeon published successfully!");
+        form.reset();
+        imagePreview.style.display = 'none';
+        modal.classList.remove('active');
+        
+      } catch (error) {
+        console.error(error);
+        showToast("Upload failed. Try again.", "error");
+      } finally {
+        submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publish Listing';
+        submitBtn.disabled = false;
+      }
+    });
+
+    // --- REAL-TIME FEED ---
+    const q = query(collection(db, "pigeons"), orderBy("timestamp", "desc"));
+    onSnapshot(q, (snapshot) => {
+      feedContainer.innerHTML = '';
+      if (snapshot.empty) {
+        feedContainer.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-box-open"></i>
+            <h2>Market is empty</h2>
+            <p>Be the first to post a pigeon!</p>
+          </div>
+        `;
+        return;
+      }
+
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const postId = docSnap.id;
+        const waLink = `https://wa.me/${data.phone}?text=Hi ${data.sellerName}, I am interested in your ${data.breed} listed for ${data.price} on Pigeon Market.`;
+
+        const card = document.createElement('div');
+        card.className = 'post-card';
+        card.innerHTML = `
+          <div class="post-header">
+            <div class="seller-info">
+              <i class="fa-solid fa-circle-user" style="font-size: 1.5rem; color: var(--primary)"></i>
+              <div>
+                <div>${data.sellerName}</div>
+                <div class="post-time">${timeAgo(data.timestamp)}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="post-image-container">
+            <img src="${data.imageUrl}" class="post-image" alt="${data.breed}" loading="lazy">
+            <div class="price-tag">${data.price}</div>
+          </div>
+          
+          <div class="post-details">
+            <h3 class="post-title">${data.breed}</h3>
+            <div class="action-buttons">
+              <button class="action-btn like-btn" data-id="${postId}">
+                <i class="fa-regular fa-heart"></i> ${data.likes || 0}
+              </button>
+              <a href="${waLink}" target="_blank" class="action-btn wa-btn">
+                <i class="fa-brands fa-whatsapp"></i> Chat
+              </a>
+            </div>
+          </div>
+        `;
+        feedContainer.appendChild(card);
+      });
+
+      document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+          if (!auth.currentUser) return showToast("Login to like posts!", "error");
+          const pId = this.getAttribute('data-id');
+          const postRef = doc(db, "pigeons", pId);
+          try {
+            await updateDoc(postRef, { likes: increment(1) });
+          } catch (err) {
+            showToast("Failed to like post", "error");
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
